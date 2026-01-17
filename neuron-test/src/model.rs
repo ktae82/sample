@@ -2,9 +2,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct Model {
-    pub w1: f64,
-    pub w2: f64,
-    pub b: f64,
+    pub w_ih: Vec<f64>, // Input to hidden weights
+    pub b_h: Vec<f64>,  // Hidden bias
+    pub w_ho: Vec<f64>, // Hidden to output weights
+    pub b_o: f64,       // Output bias
 }
 
 impl Model {
@@ -14,7 +15,12 @@ impl Model {
         Ok(model)
     }
 
-    pub fn get_weights(&self) -> (f64, f64, f64) {
-        (self.w1, self.w2, self.b)
+    pub fn get_weights(&self) -> (Vec<f64>, Vec<f64>, Vec<f64>, f64) {
+        (
+            self.w_ih.clone(),
+            self.b_h.clone(),
+            self.w_ho.clone(),
+            self.b_o,
+        )
     }
 }

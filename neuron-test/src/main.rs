@@ -72,14 +72,11 @@ fn predict_from_model(path: &str, x1_opt: Option<f64>, x2_opt: Option<f64>) {
     let x2 = x2_opt.unwrap_or(5.0);
 
     let model = Model::load_from_file(path).expect("failed to load model from file");
-    let (w1, w2, b) = model.get_weights();
+    let (w_ih, b_h, w_ho, b_o) = model.get_weights();
 
-    let nn = NeuralNetwork::from_weights(w1, w2, b, 0.0);
+    let nn = NeuralNetwork::from_weights(w_ih, b_h, w_ho, b_o, 0.0);
     let result = nn.predict(x1, x2);
-    println!(
-        "Loaded model: w1={:.6}, w2={:.6}, b={:.6}",
-        model.w1, model.w2, model.b
-    );
+    println!("Loaded model with 1 hidden layer (8 neurons)");
     println!("{} + {} ≈ {}", x1, x2, result);
 }
 

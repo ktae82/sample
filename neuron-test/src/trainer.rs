@@ -47,10 +47,15 @@ impl Trainer {
             }
         }
 
-        let (w1, w2, b) = nn.get_weights();
+        let (w_ih, b_h, w_ho, b_o) = nn.get_weights();
 
         // Save the model to a file
-        let model = Model { w1, w2, b };
+        let model = Model {
+            w_ih,
+            b_h,
+            w_ho,
+            b_o,
+        };
         let file = File::create(&self.out).expect("failed to create output file");
         serde_json::to_writer_pretty(&file, &model).expect("failed to write json model");
         println!("Model saved to {} (json)", self.out);
