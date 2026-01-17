@@ -21,36 +21,42 @@ impl Trainer {
 
     pub fn train_and_save_model(&self, training_datas: &Vec<TrainingData>) {
         // Train the neural network
-        let mut nn = NeuralNetwork::new(self.learning_rate);
+        let mut neural_network = NeuralNetwork::new(self.learning_rate);
 
         for epoch in 0..self.epochs {
             let mut total_error = 0.0;
 
             for data_point in training_datas {
-                let (x1, x2) = data_point.get_data();
+                let (input1, input2) = data_point.get_data();
                 let target = data_point.get_target();
-                let pred = nn.predict(x1, x2);
-                let error = (pred - target).abs();
+                let prediction = neural_network.predict(input1, input2);
+                let error = (prediction - target).abs();
                 total_error += error;
-                nn.train(x1, x2, target);
+                neural_network.train(input1, input2, target);
             }
 
             // Print average error every 10% of epochs
-            let avg_error = total_error / training_datas.len() as f64;
+            let average_error = total_error / training_datas.len() as f64;
             if (epoch + 1) % (self.epochs / 10).max(1) == 0 {
                 println!(
-                    "Epoch {}/{}: avg error = {:.20}",
+                    "Epoch {}/{}: average error = {:.20}",
                     epoch + 1,
                     self.epochs,
-                    avg_error
+                    average_error
                 );
             }
         }
 
-        let (w1, w2, b) = nn.get_weights();
+        let (weight_input_hidden, bias_hidden, weight_hidden_output, bias_output) =
+            neural_network.get_weights();
 
         // Save the model to a file
-        let model = Model { w1, w2, b };
+        let model = Model {
+            weight_input_hidden,
+            bias_hidden,
+            weight_hidden_output,
+            bias_output,
+        };
         let file = File::create(&self.out).expect("failed to create output file");
         serde_json::to_writer_pretty(&file, &model).expect("failed to write json model");
         println!("Model saved to {} (json)", self.out);

@@ -27,11 +27,11 @@ enum Commands {
 
         /// Learning rate
         #[arg(short, long, default_value_t = 0.01)]
-        lr: f64,
+        learning_rate: f64,
 
         /// Output file for weights
         #[arg(short, long, default_value = "model.json")]
-        out: String,
+        output: String,
     },
 
     /// Load a saved model and run inference
@@ -40,17 +40,17 @@ enum Commands {
         #[arg(short, long, default_value = "model.json")]
         model: String,
 
-        /// x1 value
+        /// input1 value
         #[arg(short = 'a', long)]
-        x1: Option<f64>,
+        input1: Option<f64>,
 
-        /// x2 value
+        /// input2 value
         #[arg(short = 'b', long)]
-        x2: Option<f64>,
+        input2: Option<f64>,
     },
 }
 
-fn train_and_save_model(epochs: usize, lr: f64, out: &str) {
+fn train_and_save_model(epochs: usize, learning_rate: f64, output: &str) {
     let training_data = vec![
         TrainingData::new(1.0, 2.0, 3.0),
         TrainingData::new(2.0, 3.0, 5.0),
@@ -64,29 +64,40 @@ fn train_and_save_model(epochs: usize, lr: f64, out: &str) {
         TrainingData::new(10.0, 11.0, 21.0),
     ];
 
-    Trainer::new(epochs, lr, out).train_and_save_model(&training_data);
+    Trainer::new(epochs, learning_rate, output).train_and_save_model(&training_data);
 }
 
-fn predict_from_model(path: &str, x1_opt: Option<f64>, x2_opt: Option<f64>) {
-    let x1 = x1_opt.unwrap_or(3.0);
-    let x2 = x2_opt.unwrap_or(5.0);
+fn predict_from_model(path: &str, input1_option: Option<f64>, input2_option: Option<f64>) {
+    let input1 = input1_option.unwrap_or(3.0);
+    let input2 = input2_option.unwrap_or(5.0);
 
     let model = Model::load_from_file(path).expect("failed to load model from file");
-    let (w1, w2, b) = model.get_weights();
+    let (weight_input_hidden, bias_hidden, weight_hidden_output, bias_output) = model.get_weights();
 
-    let nn = NeuralNetwork::from_weights(w1, w2, b, 0.0);
-    let result = nn.predict(x1, x2);
-    println!(
-        "Loaded model: w1={:.6}, w2={:.6}, b={:.6}",
-        model.w1, model.w2, model.b
+    let neural_network = NeuralNetwork::from_weights(
+        weight_input_hidden,
+        bias_hidden,
+        weight_hidden_output,
+        bias_output,
+        0.0,
     );
-    println!("{} + {} ≈ {}", x1, x2, result);
+    let result = neural_network.predict(input1, input2);
+    println!("Loaded model with 1 hidden layer (8 neurons)");
+    println!("{} + {} ≈ {}", input1, input2, result);
 }
 
 fn main() {
     let cli = Cli::parse();
     match cli.command {
-        Commands::Train { epochs, lr, out } => train_and_save_model(epochs, lr, &out),
-        Commands::Predict { model, x1, x2 } => predict_from_model(&model, x1, x2),
+        Commands::Train {
+            epochs,
+            learning_rate,
+            output,
+        } => train_and_save_model(epochs, learning_rate, &output),
+        Commands::Predict {
+            model,
+            input1,
+            input2,
+        } => predict_from_model(&model, input1, input2),
     }
 }
